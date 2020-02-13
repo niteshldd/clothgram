@@ -16,7 +16,7 @@ RUN pip install -r requirements_dev.txt
 FROM node:10 as build-nodejs
 
 ARG STATIC_URL
-ENV STATIC_URL ${STATIC_URL:-/static/}
+ENV STATIC_URL ${STATIC_URL:-https://test-bucket-cloth.s3.ap-south-1.amazonaws.com/}
 
 # Install node_modules
 COPY webpack.config.js app.json package.json package-lock.json /app/
@@ -33,7 +33,7 @@ RUN STATIC_URL=${STATIC_URL} npm run build-assets --production \
 FROM python:3.7-slim
 
 ARG STATIC_URL
-ENV STATIC_URL ${STATIC_URL:-/static/}
+ENV STATIC_URL ${STATIC_URL:-https://test-bucket-cloth.s3.ap-south-1.amazonaws.com/}
 
 RUN groupadd -r saleor && useradd -r -g saleor saleor
 
@@ -68,4 +68,8 @@ ENV PORT 8000
 ENV PYTHONUNBUFFERED 1
 ENV PROCESSES 4
 
-CMD ["uwsgi", "--ini", "/app/saleor/wsgi/uwsgi.ini"]
+# CMD ["uwsgi", "--ini", "/app/saleor/wsgi/uwsgi.ini"]
+COPY commands.sh /scripts/commands.sh
+RUN ["chmod", "+x", "/scripts/commands.sh"]
+ENTRYPOINT ["/scripts/commands.sh"]
+
